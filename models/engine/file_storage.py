@@ -1,63 +1,54 @@
 #!/usr/bin/python3
-#!/usr/bin/python3
-"""Module for Base Model unittests."""
-import unittest
-from unittest.mock import patch
-from io import StringIO
-import datetime
-
-from models.base_model import BaseModel
+"""File storage class."""
+import os
+import json
 
 
-class TestBaseModel(unittest.TestCase):
-    """Tests Base Model class."""
+class FileStorage:
+    """File storage class."""
+    __file_path = 'file.json'
+    __objects = {}
 
-    @patch('sys.stdout', new_callable=StringIO)
-    def assert_stdout(self, expected_output, mock_stdout):
-        """Assert stdout."""
-        self.assertEqual(mock_stdout.getvalue(), expected_output)
+    def all(self):
+        """all method
+        Returns:
+            [dict]: __objects"""
+        return FileStorage.__objects
 
-    def test_save(self):
-        """Test save()"""
-        my_model = BaseModel()
-        my_model.save()
-        self.assertNotEqual(my_model.created_at, my_model.updated_at)
+    def new(self, obj):
+        """new method"""
+        key = f"{type(obj).__name__}.{obj.id}"
+        FileStorage.__objects[key] = obj
 
-    @patch('builtins.open', create=True)
-    def test_save2(self, mock_open):
-        my_model = BaseModel()
-        my_model.save()
-        expected = "BaseModel." + my_model.id
-        mock_open.return_value.__enter__.return_value.read.return_value = ""
-        with open("file.json", "r") as f:
-            self.assertIn(expected, f.read())
+    def save(self):
+        """save method"""
+        obj = {}
+        for key, value in FileStorage.__objects.items():
+            obj[key] = value.to_dict()
+        with open(FileStorage.__file_path, 'w') as f:
+            json.dump(obj, f)
 
-    def test_to_dict(self):
-        """Test to_dict()"""
-        my_model = BaseModel()
-        my_model.name = "My First Model"
-        my_model.number = 89
-        my_model_json = my_model.to_dict()
-        self.assertEqual(my_model_json["id"], my_model.id)
-        self.assertEqual(my_model_json["created_at"],
-                         my_model.created_at.isoformat())
+    def reload(self):
+        """reload method"""
+        from models import user
+        from models import city
+        from models import state
+        from models import place
+        from models import review
+        from models import amenity
+        from models import base_model
 
-    def test__str__(self):
-        """Test __str__()"""
-        my_model = BaseModel()
-        my_model.name = "My First Model"
-        my_model.number = 89
-        expected_output = f"[BaseModel] ({my_model.id}) {my_model.__dict__}\n"
-        self.assert_stdout(expected_output, str(my_model))
+        dict_module = {'BaseModel': base_model, 'User': user,
+                       'State': state, 'Place': place,
+                       'City': city, 'Amenity': amenity,
+                       'Review': review}
 
-    def test_init(self):
-        """Test __init__()"""
-        my_model = BaseModel()
-        self.assertIsInstance(my_model, BaseModel)
-        self.assertIsInstance(my_model.id, str)
-        self.assertIsInstance(my_model.created_at, datetime.datetime)
-        self.assertIsInstance(my_model.updated_at, datetime.datetime)
-
-
-if __name__ == "__main__":
-    unittest.main()
+        if os.path.exists(FileStorage.__file_path):
+            with open(FileStorage.__file_path, 'r') as f:
+                loard_objects = json.load(f)
+            for key, value in loard_objects.items():
+                class_name = value['__class__']
+                if class_name in dict_module:
+                    model_module = dict_module[class_name]
+                    model_class = getattr(model_module, class_name)
+                FileStorage.__objects[key] = model_class(**value)
