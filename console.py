@@ -1,16 +1,10 @@
 #!/usr/bin/python3
-"""
-Module for HBNB command interpreter.
-"""
+"""Module for HBNB command interpreter."""
 
 import cmd
-from models.base_model import BaseModel
-from models import storage
 
 class HBNBCommand(cmd.Cmd):
-    """
-    Command interpreter for HBNB console.
-    """
+    """Command interpreter for HBNB console."""
 
     prompt = "(hbnb) "
 
@@ -26,6 +20,12 @@ class HBNBCommand(cmd.Cmd):
     def emptyline(self):
         """Do nothing on empty line."""
         pass
+
+    def default(self, line):
+        """Handle invalid commands."""
+        if not line:
+            return
+        print("*** Unknown syntax: {}".format(line))
 
 if __name__ == '__main__':
     HBNBCommand().cmdloop()
