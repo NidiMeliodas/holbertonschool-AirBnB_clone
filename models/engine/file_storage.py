@@ -37,18 +37,17 @@ class FileStorage:
         from models import review
         from models import amenity
         from models import base_model
-
+        
         dict_module = {'BaseModel': base_model, 'User': user,
                        'State': state, 'Place': place,
                        'City': city, 'Amenity': amenity,
                        'Review': review}
-
         if os.path.exists(FileStorage.__file_path):
             with open(FileStorage.__file_path, 'r') as f:
-                loard_objects = json.load(f)
-            for key, value in loard_objects.items():
-                class_name = value['__class__']
-                if class_name in dict_module:
-                    model_module = dict_module[class_name]
-                    model_class = getattr(model_module, class_name)
-                FileStorage.__objects[key] = model_class(**value)
+                load_objects = json.load(f)  # Corrected variable name
+                for key, value in load_objects.items():  # Corrected variable name
+                    class_name = value['__class__']
+                    if class_name in dict_module:
+                        model_module = dict_module[class_name]
+                        model_class = getattr(model_module, class_name)
+                        FileStorage.__objects[key] = model_class(**value)
