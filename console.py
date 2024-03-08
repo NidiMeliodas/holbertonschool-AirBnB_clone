@@ -1,31 +1,142 @@
 #!/usr/bin/python3
-"""Module for HBNB command interpreter."""
+"""This module contains the HBNBCommand class for the console"""
+
 
 import cmd
+import models
+
 
 class HBNBCommand(cmd.Cmd):
-    """Command interpreter for HBNB console."""
+    """
+    This class contains the console for the HBNB project
+    """
 
     prompt = "(hbnb) "
 
+    def obj_arg_valid(self, args):
+        if (not args):
+            print("** class name missing **")
+            return False
+        length = len(args)
+        if (length < 1):
+            print("** class name missing **")
+            return False
+        if (not models.storage.class_exists(args[0])):
+            print("** class doesn't exist **")
+            return False
+        if (length < 2):
+            print("** instance id missing **")
+            return False
+        return True
+
     def do_quit(self, arg):
-        """Exit the program."""
+        """Quit command to exit the program"""
         return True
 
     def do_EOF(self, arg):
-        """Exit the program."""
-        print()
+        """EOF command to exit the program"""
         return True
 
+    def do_create(self, arg):
+        """Create a new instance of BaseModel"""
+        if not arg:
+            print("** class name missing **")
+            return
+        try:
+            _class = models.storage.get_class(arg)
+            if (not _class):
+                print("** class doesn't exist **")
+                return
+            new_instance = _class()
+            new_instance.save()
+            print(new_instance.id)
+        except NameError:
+            print("** class doesn't exist **")
+
+    def do_show(self, arg):
+        """Print the string representation of an instance"""
+        args = arg.split()
+        if (self.obj_arg_valid(args) is False):
+            return
+        class_name = args[0]
+        instance_id = args[1]
+        instance = models.storage.get(class_name, instance_id)
+        if instance:
+            print(instance)
+        else:
+            print("** no instance found **")
+
+    def do_destroy(self, arg):
+        """Delete an instance based on the class name and id"""
+        args = arg.split()
+        if (self.obj_arg_valid(args) is False):
+            return
+        class_name = args[0]
+        instance_id = args[1]
+        instance = models.storage.get(class_name, instance_id)
+        if instance:
+            models.storage.delete(instance)
+        else:
+            print("** no instance found **")
+
+    def do_all(self, arg):
+        """Print all instances"""
+        if not arg:
+            instances = models.storage.all()
+            print([str(instance) for instance in instances.values()])
+        else:
+            _class = models.storage.get_class(arg)
+            if (not _class):
+                print("** class doesn't exist **")
+                return
+            all = models.storage.all()
+            instances = []
+            for key in all:
+                instance = all[key]
+                if instance.__class__ == _class:
+                    instances.append(str(instance))
+            print([str(instance) for instance in instances])
+
+    def do_update(self, arg):
+        """Update an instance based on the class name and id"""
+        args = arg.split()
+        if (self.obj_arg_valid(args) is False):
+            return
+        class_name = args[0]
+        instance_id = args[1]
+        instance = models.storage.get(class_name, instance_id)
+        if instance:
+            if len(args) < 3:
+                print("** attribute name missing **")
+            elif len(args) < 4:
+                print("** value missing **")
+            else:
+                attribute_name = args[2]
+                attribute_value: str = args[3]
+                attribute_type = None
+                if (not hasattr(instance, attribute_name)):
+                    if (attribute_value.isdigit()):
+                        attribute_type = int
+                    elif (attribute_value.replace('.', '', 1).isdigit()):
+                        attribute_type = float
+                    else:
+                        attribute_type = str
+                else:
+                    attribute_type = type(getattr(instance, attribute_name))
+                setattr(
+                    instance,
+                    attribute_name,
+                    attribute_type(attribute_value)
+                )
+                print(instance)
+                instance.save()
+        else:
+            print("** no instance found **")
+
     def emptyline(self):
-        """Do nothing on empty line."""
+        """Do nothing when an empty line is entered"""
         pass
 
-    def default(self, line):
-        """Handle invalid commands."""
-        if not line:
-            return
-        print("*** Unknown syntax: {}".format(line))
 
 if __name__ == '__main__':
     HBNBCommand().cmdloop()
