@@ -4,13 +4,13 @@ import os
 import json
 
 # Importez les modules à partir du répertoire actuel
-from .models import user
-from .models import city
-from .models import state
-from .models import place
-from .models import review
-from .models import amenity
-from .models import base_model
+from models import user
+from models import city
+from models import state
+from models import place
+from models import review
+from models import amenity
+from models import base_model
 
 
 class FileStorage:
