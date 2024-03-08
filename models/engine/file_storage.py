@@ -1,54 +1,35 @@
-#!/usr/bin/python3
-"""File storage class."""
-import os
 import json
 
-
 class FileStorage:
-    """File storage class."""
+    """Classe pour la gestion du stockage des fichiers"""
     __file_path = 'file.json'
     __objects = {}
 
     def all(self):
-        """all method
-        Returns:
-            [dict]: __objects"""
-        return FileStorage.__objects
+        """Renvoie le dictionnaire __objects"""
+        return self.__objects
 
     def new(self, obj):
-        """new method"""
-        key = f"{type(obj).__name__}.{obj.id}"
-        FileStorage.__objects[key] = obj
+        """Ajoute l'objet à __objects avec la clé <nom de la classe>.id"""
+        key = "{}.{}".format(type(obj).__name__, obj.id)
+        self.__objects[key] = obj
 
     def save(self):
-        """save method"""
-        obj = {}
-        for key, value in FileStorage.__objects.items():
-            obj[key] = value.to_dict()
-        with open(FileStorage.__file_path, 'w') as f:
-            json.dump(obj, f)
+        """Sérialise __objects en JSON et écrit dans le fichier"""
+        serialized_obj = {}
+        for key, value in self.__objects.items():
+            serialized_obj[key] = value.to_dict()
+        with open(self.__file_path, "w", encoding="utf-8") as file:
+            json.dump(serialized_obj, file)
 
     def reload(self):
-        """reload method"""
-        from models import user
-        from models import city
-        from models import state
-        from models import place
-        from models import review
-        from models import amenity
-        from models import base_model
-
-        dict_module = {'BaseModel': base_model, 'User': user,
-                       'State': state, 'Place': place,
-                       'City': city, 'Amenity': amenity,
-                       'Review': review}
-
-        if os.path.exists(FileStorage.__file_path):
-            with open(FileStorage.__file_path, 'r') as f:
-                loard_objects = json.load(f)
-            for key, value in loard_objects.items():
-                class_name = value['__class__']
-                if class_name in dict_module:
-                    model_module = dict_module[class_name]
-                    model_class = getattr(model_module, class_name)
-                FileStorage.__objects[key] = model_class(**value)
+        """Désérialise le fichier JSON en __objects"""
+        try:
+            with open(self.__file_path, "r", encoding="utf-8") as file:
+                for key, value in json.load(file).items():
+                    class_name = key.split(".")[0]
+                    # Vous devrez importer la classe dynamiquement ici
+                    obj = globals()[class_name](**value)
+                    self.__objects[key] = obj
+        except FileNotFoundError:
+            pass
