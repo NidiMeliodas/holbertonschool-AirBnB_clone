@@ -1,10 +1,16 @@
 #!/usr/bin/python3
-"""Module for HBNB command interpreter."""
+"""
+Module for HBNB command interpreter.
+"""
 
 import cmd
+from models.base_model import BaseModel
+from models import storage
 
 class HBNBCommand(cmd.Cmd):
-    """Command interpreter for HBNB console."""
+    """
+    Command interpreter for HBNB console.
+    """
 
     prompt = "(hbnb) "
 
