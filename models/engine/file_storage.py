@@ -1,5 +1,6 @@
 import json
 
+
 class FileStorage:
     """Classe pour la gestion du stockage des fichiers"""
     __file_path = 'file.json'
