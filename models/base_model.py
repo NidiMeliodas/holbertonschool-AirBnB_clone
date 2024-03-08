@@ -6,7 +6,7 @@ from models import storage
 
 class BaseModel:
     
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         if kwargs:
             format_style = '%Y-%m-%dT%H:%M:%S.%f'
             for key, value in kwargs.items():
